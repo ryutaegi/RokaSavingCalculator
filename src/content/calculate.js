@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const MilitarySavingsCalculator = () => {
     const [startDate, setStartDate] = useState('');
@@ -8,49 +8,44 @@ const MilitarySavingsCalculator = () => {
     const [totalPrincipal, setTotalPrincipal] = useState(0);
     const [totalInterest, setTotalInterest] = useState(0);
 
-    const handleDateChange = (isStart = false, value) => {
-        // 상태 업데이트
+    useEffect(() => {
+        if (!startDate || !endDate) return;
+
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        if (start > end) {
+            alert("종료일은 시작일보다 나중이어야 합니다.");
+            return;
+        }
+
+        const deposits = [];
+        let current = new Date(start);
+
+        while (current <= end) {
+            deposits.push({ date: new Date(current), amount: 0 });
+            current.setMonth(current.getMonth() + 1);
+        }
+
+        setMonthlyDeposits(deposits);
+    }, [startDate, endDate]);
+
+    const handleDateChange = (isStart, value) => {
         if (isStart) {
             setStartDate(value);
         } else {
             setEndDate(value);
         }
-    
-        // 상태 업데이트 후 계산 실행
-        setTimeout(() => {
-            if (!startDate || !endDate) return;
-    
-            const start = new Date(isStart ? value : startDate);
-            const end = new Date(isStart ? endDate : value);
-    
-            if (start > end) {
-                alert("종료일은 시작일보다 나중이어야 합니다.");
-                return;
-            }
-    
-            const deposits = [];
-            let current = new Date(start);
-    
-            while (current <= end) {
-                deposits.push({ date: new Date(current), amount: 0 }); // 현재 날짜 추가
-                current.setMonth(current.getMonth() + 1); // 다음 달로 이동
-            }
-    
-            setMonthlyDeposits(deposits); // 상태 업데이트
-        }, 0); // 상태가 업데이트된 직후 실행
     };
-    
-    
-    
 
     const handleSetMaximum = () => {
         const deposits = monthlyDeposits.map(({ date }) => {
             return {
                 date,
                 amount: date.getFullYear() === 2023 ? 400000 :
-                date.getFullYear() === 2024 ? 400000 : 
-                date.getFullYear() === 2025 ? 550000 : 
-                date.getFullYear() === 2026 ? 550000 : 0,
+                    date.getFullYear() === 2024 ? 400000 :
+                    date.getFullYear() === 2025 ? 550000 :
+                    date.getFullYear() === 2026 ? 550000 : 0,
             };
         });
         setMonthlyDeposits(deposits);
@@ -71,7 +66,6 @@ const MilitarySavingsCalculator = () => {
     const calculateResults = () => {
         const totalPrincipal = monthlyDeposits.reduce((sum, { amount }) => sum + amount, 0);
 
-        // Calculate interest by summing the interest accrued for each deposit
         let totalInterest = 0;
         monthlyDeposits.forEach(({ amount, date }) => {
             const monthsUntilEnd = Math.max(0, (new Date(endDate).getFullYear() - date.getFullYear()) * 12 + (new Date(endDate).getMonth() - date.getMonth()));
@@ -83,23 +77,23 @@ const MilitarySavingsCalculator = () => {
     };
 
     return (
-        <div style={{ padding: '20px', marginLeft : "10px", marginRight : "10px", fontFamily: 'Arial, sans-serif' }}>
+        <div style={{ padding: '20px', marginLeft: "10px", marginRight: "10px", fontFamily: 'Arial, sans-serif' }}>
             <h1 style={{ textAlign: 'center', color: '#4CAF50', marginBottom: '20px' }}>군적금 계산기</h1>
-            <div style={{ marginBottom: '10px',display : "flex", justifyContent : "space-between" }}>
+            <div style={{ marginBottom: '10px', display: "flex", justifyContent: "space-between" }}>
                 <label>적금 첫 납부일: </label>
                 <input 
-                type="date" 
-                value={startDate} 
-                 onChange={(e) => handleDateChange(true, e.target.value)} 
+                    type="date" 
+                    value={startDate} 
+                    onChange={(e) => handleDateChange(true, e.target.value)} 
                 />
             </div>
-            <div style={{ marginBottom: '10px', display : "flex", justifyContent : "space-between" }}>
+            <div style={{ marginBottom: '10px', display: "flex", justifyContent: "space-between" }}>
                 <label>전역일: </label>
                 <input 
-    type="date" 
-    value={endDate} 
-    onChange={(e) => handleDateChange(false, e.target.value)} 
-/>
+                    type="date" 
+                    value={endDate} 
+                    onChange={(e) => handleDateChange(false, e.target.value)} 
+                />
             </div>
             {monthlyDeposits.length > 0 && (
                 <div>
@@ -113,19 +107,20 @@ const MilitarySavingsCalculator = () => {
                             borderRadius: '5px',
                             cursor: 'pointer',
                             marginBottom: '15px',
+                            fontSize: '13px'
                         }} 
                         onClick={handleSetMaximum}
                     >
                         최대값
                     </button>
                     {monthlyDeposits.map(({ date, amount }, index) => (
-                        <div key={index} style={{ display: 'flex', alignItems: 'center', flexWrap : 'wrap', marginBottom: '5px' }}>
-                            <label style={{ flex: 1, fontSize : "13px" }}>{`${date.getFullYear()}년 ${date.getMonth() + 1}월:`}</label>
+                        <div key={index} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', marginBottom: '5px' }}>
+                            <label style={{ flex: 1, fontSize: "13px" }}>{`${date.getFullYear()}년 ${date.getMonth() + 1}월:`}</label>
                             <input 
                                 type="number" 
                                 value={amount} 
                                 onChange={(e) => handleDepositChange(index, e.target.value)} 
-                                style={{ flex: 1, width : "30%", marginRight : "5px" }}
+                                style={{ flex: 1, width: "30%", marginRight: "5px" }}
                             />
                             <button 
                                 onClick={() => adjustDeposit(index, 50000)}
@@ -137,7 +132,7 @@ const MilitarySavingsCalculator = () => {
                                     borderRadius: '3px',
                                     cursor: 'pointer',
                                     marginRight: '5px',
-                                    fontSize : '13px',
+                                    fontSize: '13px',
                                 }}
                             >
                                 +5만
@@ -151,7 +146,7 @@ const MilitarySavingsCalculator = () => {
                                     padding: '5px 10px',
                                     borderRadius: '3px',
                                     cursor: 'pointer',
-                                    fontSize : "13px",
+                                    fontSize: "13px",
                                 }}
                             >
                                 -5만
@@ -162,14 +157,14 @@ const MilitarySavingsCalculator = () => {
             )}
             {monthlyDeposits.length > 0 && (
                 <div>
-                    <div style={{ marginBottom: '10px', display : "flex", justifyContent : "space-between"  }}>
+                    <div style={{ marginBottom: '10px', display: "flex", justifyContent: "space-between" }}>
                         <label>금리 (기본 5%): </label>
                         <div>
-                        <input 
-                            type="number" 
-                            value={interestRate} 
-                            onChange={(e) => setInterestRate(Number(e.target.value))} 
-                        /> %
+                            <input 
+                                type="number" 
+                                value={interestRate} 
+                                onChange={(e) => setInterestRate(Number(e.target.value))} 
+                            /> %
                         </div>
                     </div>
                     <button
@@ -181,6 +176,7 @@ const MilitarySavingsCalculator = () => {
                             padding: '10px',
                             borderRadius: '5px',
                             cursor: 'pointer',
+                            fontSize: '13px'
                         }} 
                         onClick={calculateResults}
                     >
@@ -197,7 +193,6 @@ const MilitarySavingsCalculator = () => {
                     2024, 2025 매칭지원금 100% 기준
                 </p>
                 <h3>합계 (원금 + 이자 + 매칭지원금): {(totalPrincipal + totalPrincipal + totalInterest).toLocaleString()} 원</h3>
-                
             </div>
         </div>
     );

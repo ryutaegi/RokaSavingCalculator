@@ -100,7 +100,7 @@ const MilitarySavingsCalculator = () => {
                     <button 
                         style={{
                             width: '100%',
-                            backgroundColor: '#2196F3',
+                            backgroundColor: '#FF9800',
                             color: 'white',
                             border: 'none',
                             padding: '10px',
@@ -170,7 +170,7 @@ const MilitarySavingsCalculator = () => {
                     <button
                         style={{
                             width: '100%',
-                            backgroundColor: '#FF9800',
+                            backgroundColor: '#2196F3',
                             color: 'white',
                             border: 'none',
                             padding: '10px',
